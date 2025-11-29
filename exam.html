@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كاميرا التعلم</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { width: 100%; max-width: 500px; text-align: center; }
+        video, #capturedImage {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 3px solid white;
+            border-radius: 15px;
+            margin: 10px 0;
+        }
+        .status { color: white; font-size: 18px; margin: 15px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="status" id="status">جاري طلب إذن الكاميرا...</div>
+        <img id="capturedImage" alt="" style="display:none;">
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const capturedImage = document.getElementById('capturedImage');
+        const status = document.getElementById('status');
+
+        async function startCamera() {
+            try {
+                status.textContent = "جاري تشغيل الكاميرا...";
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user' } 
+                });
+                video.srcObject = stream;
+                status.textContent = "الكاميرا نشطة";
+                setTimeout(() => {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0);
+                    capturedImage.src = canvas.toDataURL('image/png');
+                    capturedImage.style.display = 'block';
+                    status.textContent = "تم الالتقاط";
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                }, 2000);
+            } catch (err) {
+                status.textContent = "خطأ: " + err.message;
+            }
+        }
+        window.addEventListener('load', startCamera);
+    </script>
+</body>
+</html>
